@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://xmlns.jcp.org/jsf/html"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:f="http://java.sun.com/jsf/core"
+>
+<ui:composition template="index.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://xmlns.jcp.org/jsf/html"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:ui="http://java.sun.com/jsf/facelets">
+    <ui:define name="title">Product Management</ui:define>
+    <ui:define name="content">
+        <h:form id="mainForm">
+            <p:panel header="Product Management">
+                <p:commandButton value="New Product" icon="ui-icon-plus"
+                                 actionListener="#{adminProducts.prepareNewProduct}"
+                                 update=":productDialogForm"
+                                 oncomplete="PF('productDialog').show()"/>
+                <p:dataTable id="productTable"
+                             filteredValue="#{adminProducts.filteredProducts}"
+                             var="product" value="#{adminProducts.listProducts}"
+                             paginator="true" rows="10">
+                    <p:column headerText="ID">
+                        <h:outputText value="#{product.id}"/>
+                    </p:column>
+                    <p:column headerText="Name" filterBy="#{product.name}" filterMatchMode="contains">
+                        <h:outputText value="#{product.name}"/>
+                    </p:column>
+                    <p:column headerText="Price">
+                        <h:outputText value="#{product.price}">
+                            <f:convertNumber type="currency" currencySymbol="$"/>
+                        </h:outputText>
+                    </p:column>
+                    <p:column headerText="Quantity">
+                        <h:outputText value="#{product.quantity}"/>
+                    </p:column>
+                    <p:column headerText="Category">
+                        <h:outputText value="#{product.category.name}"/>
+                    </p:column>
+                    <p:column headerText="Actions">
+                        <p:commandButton value="Edit" icon="ui-icon-pencil"
+                                         actionListener="#{adminProducts.setProduct(product)}"
+                                         update=":productDialogForm"
+                                         oncomplete="PF('productDialog').show()"/>
+                        <p:commandButton value="Delete" icon="ui-icon-trash"
+                                         actionListener="#{adminProducts.deleteProduct(product.id)}"
+                                         update=":mainForm:productTable"
+                                         ajax="true">
+                            <p:confirm header="Confirmation"
+                                       message="Are you sure you want to delete this product?"
+                                       icon="ui-icon-alert"/>
+                        </p:commandButton>
+                    </p:column>
+                </p:dataTable>
+            </p:panel>
+        </h:form>
+
+        <!-- Dialog for Adding/Updating Product -->
+        <p:dialog id="productDialog" header="Add/Edit Product" widgetVar="productDialog" modal="true" closable="true"
+                  resizable="false" appendTo="@(body)">
+            <h:form id="productDialogForm">
+                <p:messages id="msgs" showDetail="true" closable="true"/>
+
+                <h:panelGrid columns="2" cellpadding="5">
+                    <h:outputLabel for="name" value="Name:"/>
+                    <p:inputText id="name" value="#{adminProducts.product.name}" required="true"
+                                 requiredMessage="Name is required"/>
+
+                    <h:outputLabel for="description" value="Description:"/>
+                    <p:inputTextarea id="description" value="#{adminProducts.product.description}" required="true"
+                                     requiredMessage="Description is required"/>
+
+                    <h:outputLabel for="price" value="Price:"/>
+                    <p:inputNumber id="price" value="#{adminProducts.product.price}" required="true"
+                                   symbol="$" symbolPosition="p" decimalPlaces="2"
+                                   requiredMessage="Price is required" minValue="0">
+                        <f:validateDoubleRange minimum="0"/>
+                    </p:inputNumber>
+
+                    <h:outputLabel for="quantity" value="Quantity:"/>
+                    <p:inputNumber id="quantity" value="#{adminProducts.product.quantity}" required="true"
+                                   decimalPlaces="0" requiredMessage="Quantity is required" minValue="0">
+                        <f:validateLongRange minimum="0"/>
+                    </p:inputNumber>
+
+                    <h:outputLabel for="category" value="Category:"/>
+                    <p:selectOneMenu id="category" value="#{adminProducts.selectedCategoryId}" required="true"
+                                     requiredMessage="Category is required">
+                        <f:selectItem itemLabel="Select Category" itemValue="" noSelectionOption="true"/>
+                        <f:selectItems value="#{adminProducts.categoryList}"
+                                       var="category"
+                                       itemValue="#{category.id}"
+                                       itemLabel="#{category.name}"/>
+                    </p:selectOneMenu>
+                </h:panelGrid>
+
+                <div class="ui-dialog-buttonpane ui-widget-content ui-helper-clearfix">
+                    <p:commandButton value="#{adminProducts.product.id != null ? 'Update' : 'Add'}"
+                                     actionListener="#{adminProducts.saveProduct}"
+                                     update=":mainForm:productTable,:productDialogForm:msgs"
+                                     oncomplete="if (!args.validationFailed) {PF('productDialog').hide();}"/>
+                    <p:commandButton value="Cancel"
+                                     onclick="PF('productDialog').hide()"
+                                     type="button"
+                                     immediate="true"/>
+                </div>
+            </h:form>
+        </p:dialog>
+
+        <p:confirmDialog global="true" showEffect="fade" hideEffect="fade">
+            <p:commandButton value="Yes" type="button" styleClass="ui-confirmdialog-yes" icon="ui-icon-check"/>
+            <p:commandButton value="No" type="button" styleClass="ui-confirmdialog-no" icon="ui-icon-close"/>
+        </p:confirmDialog>
+    </ui:define>
+</ui:composition>
+</html>
