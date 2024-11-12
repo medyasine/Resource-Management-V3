@@ -38,6 +38,10 @@
                     <p:column headerText="Category">
                         <h:outputText value="#{product.category.name}"/>
                     </p:column>
+                    <p:column headerText="Image">
+                        <h:graphicImage value="/resources/images/#{product.image}"
+                                        rendered="#{not empty product.image}" width="50" height="50"/>
+                    </p:column>
                     <p:column headerText="Actions">
                         <p:commandButton value="Edit" icon="ui-icon-pencil"
                                          actionListener="#{adminProducts.setProduct(product)}"
@@ -59,7 +63,7 @@
         <!-- Dialog for Adding/Updating Product -->
         <p:dialog id="productDialog" header="Add/Edit Product" widgetVar="productDialog" modal="true" closable="true"
                   resizable="false" appendTo="@(body)">
-            <h:form id="productDialogForm">
+            <h:form id="productDialogForm" enctype="multipart/form-data">
                 <p:messages id="msgs" showDetail="true" closable="true"/>
 
                 <h:panelGrid columns="2" cellpadding="5">
@@ -93,13 +97,27 @@
                                        itemValue="#{category.id}"
                                        itemLabel="#{category.name}"/>
                     </p:selectOneMenu>
+
+                    <h:outputLabel for="image" value="Upload Image:"/>
+                    <p:fileUpload id="image" value="#{adminProducts.imageFile}"
+                                  mode="simple"
+                                  skinSimple="true"
+                                  sizeLimit="10485760"/>
+
+                    <h:outputLabel value="Current Image:" rendered="#{not empty adminProducts.product.image}"/>
+                    <p:graphicImage value="resources/images/#{adminProducts.product.image}"
+                                    rendered="#{not empty adminProducts.product.image}"
+                                    width="100" height="100"
+                                    cache="false"/>
                 </h:panelGrid>
 
                 <div class="ui-dialog-buttonpane ui-widget-content ui-helper-clearfix">
                     <p:commandButton value="#{adminProducts.product.id != null ? 'Update' : 'Add'}"
                                      actionListener="#{adminProducts.saveProduct}"
+                                     process="@form"
                                      update=":mainForm:productTable,:productDialogForm:msgs"
-                                     oncomplete="if (!args.validationFailed) {PF('productDialog').hide();}"/>
+                                     oncomplete="if (!args.validationFailed) {PF('productDialog').hide();}"
+                                     ajax="false"/>
                     <p:commandButton value="Cancel"
                                      onclick="PF('productDialog').hide()"
                                      type="button"
